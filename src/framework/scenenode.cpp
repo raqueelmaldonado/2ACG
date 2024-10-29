@@ -60,3 +60,13 @@ void SceneNode::renderInMenu()
 		ImGui::TreePop();
 	}
 }
+
+
+//extend the SceneNode class:
+VolumeNode::VolumeNode() { // Initialize density or other volume-specific properties
+	this->type = NODE_VOLUME; // Set a new type for this node if needed
+}
+
+VolumeNode::~VolumeNode() { }
+
+

@@ -32,3 +32,12 @@ public:
 	virtual void renderWireframe(Camera* camera);
 	virtual void renderInMenu();
 };
+
+//extend the SceneNode class:
+
+class VolumeNode : public SceneNode {
+public:
+	VolumeNode();
+	~VolumeNode();
+
+};

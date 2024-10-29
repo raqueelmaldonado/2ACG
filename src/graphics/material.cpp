@@ -158,3 +158,9 @@ void StandardMaterial::renderInMenu()
 
 	if (!this->show_normals) ImGui::ColorEdit3("Color", (float*)&this->color);
 }
+
+VolumeMaterial::VolumeMaterial()  {
+	this->shader = Shader::Get("res/shaders/basic.vs", "res/shaders/volume.fs");
+}
+
+VolumeMaterial::~VolumeMaterial() { }

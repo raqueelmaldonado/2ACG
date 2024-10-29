@@ -57,3 +57,16 @@ public:
 	void render(Mesh* mesh, glm::mat4 model, Camera* camera);
 	void renderInMenu();
 };
+//extend the material class:
+
+class VolumeMaterial : public Material {
+public:
+	float absorption; // Attribute for the absorption rate in volume rendering
+
+	VolumeMaterial();
+	~VolumeMaterial();
+
+	// Override setUniforms to add volume-specific uniforms
+	void setUniforms(Camera* camera, glm::mat4 model) override;
+	void renderInMenu() override; // For GUI control in ImGui
+};
