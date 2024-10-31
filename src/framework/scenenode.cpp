@@ -65,6 +65,8 @@ void SceneNode::renderInMenu()
 //extend the SceneNode class:
 VolumeNode::VolumeNode() { // Initialize density or other volume-specific properties
 	this->type = NODE_VOLUME; // Set a new type for this node if needed
+	this->type = NODE_BASE;
+	this->name = name;
 }
 
 VolumeNode::~VolumeNode() { }

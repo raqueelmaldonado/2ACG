@@ -27,6 +27,16 @@ void Application::init(GLFWwindow* window)
     example->mesh = Mesh::Get("res/meshes/sphere.obj");
     example->material = new StandardMaterial();
     this->node_list.push_back(example);
+
+    VolumeNode* example1 = new VolumeNode();
+    example1->mesh = Mesh::Get("res/meshes/sphere.obj");
+    example1->material = new StandardMaterial();
+    this->node_list.push_back(example1);
+
+    VolumeMaterial* example2 = new VolumeMaterial();
+    example2->mesh = Mesh::get("res/meshes/sphere.obj");
+    example2->material = new StandardMaterial();
+    this->node_list.push_back(example2);
 }
 
 void Application::update(float dt)
