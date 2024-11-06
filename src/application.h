@@ -11,7 +11,7 @@ class Application
 {
 public:
 	static Application* instance;
-	
+
 	static Camera* camera;
 	std::vector<SceneNode*> node_list;
 	glm::vec4 ambient_light;
@@ -27,6 +27,7 @@ public:
 	bool dragging;
 	glm::vec2 mousePosition;
 	glm::vec2 lastMousePosition;
+	glm::vec4 background_color = glm::vec4(1.0f, 0.1f, 0.1f, 1.0f);
 
 	void init(GLFWwindow* window);
 	void update(float dt);
