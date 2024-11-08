@@ -210,7 +210,7 @@ void VolumeMaterial::renderInMenu()
 			this->shader = Shader::Get("res/shaders/volume.vs", "res/shaders/volume.fs");
 		}
 		if (shader_type == 1) {
-			this->shader = Shader::Get("res/shaders/volume.vs", "res/shaders/volume.fs");
+			this->shader = Shader::Get("res/shaders/emission_absorption.vs", "res/shaders/emission_absorption.fs");
 			ImGui::SliderFloat("Step Size", &this->absorption, 0.0f, 1.0f);
 
 		}
@@ -228,4 +228,6 @@ void VolumeMaterial::renderInMenu()
 		ImGui::SliderInt("Noise Detail", &this->noise_detail, 0, 5);
 
 	}
+
+	ImGui::ColorEdit3("Color", (float*)&this->color);
 }
