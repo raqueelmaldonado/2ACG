@@ -120,30 +120,22 @@ float heterogeneousRayMarching(vec3 ray_position, vec3 ray_direction, vec2 t){
 }
 
 vec4 computeColor (vec3 ray_position, vec3 ray_direction, vec2 t, vec3 bg_color){
-    float optical_thickness;
+    float optical_thickness = 0.0;
     float transmittance;
     vec3 color = vec3(0.0, 0.0, 0.0);
-    vec3 light_color = vec3(u_light_color.x, u_light_color.y, u_light_color.z);
+    vec3 light_color = vec3(u_color.x, u_color.y, u_color.z);
     vec3 background_color = vec3(u_background_color.x, u_background_color.y, u_background_color.z);
-    if (u_volume_type == 0)
-        optical_thickness = homogeneousRayMarching(t);
-    else if (u_volume_type == 1) 
-        optical_thickness = heterogeneousRayMarching(ray_position, ray_direction, t);
+    vec3 p = vec3(0.0); 
+    float absorption_coeffitient = cnoise(p, u_noise_scale, u_noise_detail);
 
     for (float i=0; i<t.y; i+=u_step_size) {
-        optical_thickness = heterogeneousRayMarching(
-            ray_position,
-            ray_direction,
-            vec2(i, t.y)
-        );
+        p = ray_position + i * ray_direction;
+        absorption_coeffitient = cnoise(p, u_noise_scale, u_noise_detail);
+        optical_thickness += absorption_coeffitient * u_absorption * u_step_size;
         transmittance = exp(-optical_thickness);
         color += light_color * u_absorption * transmittance* u_step_size;
-    }
-    optical_thickness = heterogeneousRayMarching(
-        ray_position,
-        ray_direction,
-        vec2(0.0, t.y)
-    );
+    };
+
     color += background_color * exp(-optical_thickness);
     return vec4(color, 1.0);
 
