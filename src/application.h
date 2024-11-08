@@ -11,7 +11,7 @@ class Application
 {
 public:
 	static Application* instance;
-
+	
 	static Camera* camera;
 	std::vector<SceneNode*> node_list;
 	glm::vec4 ambient_light;

@@ -136,7 +136,7 @@ void StandardMaterial::render(Mesh* mesh, glm::mat4 model, Camera* camera)
 
 			// do the draw call
 			mesh->render(GL_TRIANGLES);
-
+            
 			first_pass = false;
 		}
 
@@ -159,7 +159,7 @@ void StandardMaterial::renderInMenu()
 	if (!this->show_normals) ImGui::ColorEdit3("Color", (float*)&this->color);
 }
 
-VolumeMaterial::VolumeMaterial() {
+VolumeMaterial::VolumeMaterial()  {
 	this->shader = Shader::Get("res/shaders/volume.vs", "res/shaders/volume.fs");
 }
 
@@ -187,18 +187,19 @@ void VolumeMaterial::setUniforms(Camera* camera, glm::mat4 model)
 	this->shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 	this->shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 	this->shader->setUniform("u_camera_position", camera->eye);
-	this->shader->setUniform("u_camera_position", camera->eye);
 	this->shader->setUniform("u_model", model);
 	this->shader->setUniform("u_color", this->color);
 	this->shader->setUniform("u_absorption", this->absorption);
 	if (volume_type == 0) {
-		this->shader->setUniform("u_volume_type", volume_type);
+		this->shader->setUniform("u_volume_type", this->volume_type);
 	}
 	if (volume_type == 1) {
-		this->shader->setUniform("u_volume_type", volume_type);
+		this->shader->setUniform("u_volume_type", this->volume_type);
+		this->shader->setUniform("u_step_size", this->step_size);
+		this->shader->setUniform("u_noise_scale", this->noise_scale);
+		this->shader->setUniform("u_noise_detail", this->noise_detail);
 
 	}
-
 }
 void VolumeMaterial::renderInMenu()
 {
@@ -210,13 +211,21 @@ void VolumeMaterial::renderInMenu()
 		}
 		if (shader_type == 1) {
 			this->shader = Shader::Get("res/shaders/volume.vs", "res/shaders/volume.fs");
+			ImGui::SliderFloat("Step Size", &this->absorption, 0.0f, 1.0f);
+
 		}
 	};
+	
+
+	
+	ImGui::SliderFloat("Absorption", &this->absorption, 0.0f, 2.0f);
 
 
+	ImGui::Combo("Volume Type", &this->volume_type, "Homogeneous\0Heterogeneous\0", 2);
+	if (volume_type == 1) {
+		ImGui::SliderFloat("Step Size", &this->step_size, 0.001f, 1.0f);
+		ImGui::SliderFloat("Noise Scale", &this->noise_scale, 0.0f, 3.0f);
+		ImGui::SliderInt("Noise Detail", &this->noise_detail, 0, 5);
 
-	ImGui::SliderFloat("Absorption", &this->absorption, 0.0f, 1.0f);
-
-
-	ImGui::Combo("Volume Type", &volume_type, "Homogeneous\0Heterogeneous\0", 2);
+	}
 }

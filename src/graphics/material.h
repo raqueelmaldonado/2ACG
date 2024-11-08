@@ -61,7 +61,7 @@ public:
 
 class VolumeMaterial : public Material {
 public:
-	float absorption; // Attribute for the absorption rate in volume rendering
+	float absorption = 0.01; // Attribute for the absorption rate in volume rendering
 
 	VolumeMaterial();
 	~VolumeMaterial();
@@ -72,4 +72,8 @@ public:
 
 	int volume_type; // Attribute for the volume type
 	int shader_type; // Attribute for the shader type
+	float step_size = 0.01; // Attribute for the step size
+	float noise_scale = 0.01; // Attribute for the noise scale
+	int noise_detail = 1; // Attribute for the noise intensity
 };
+
