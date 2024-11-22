@@ -1,5 +1,5 @@
 #include "application.h"
-
+#include "../src/graphics/material.h"
 
 bool render_wireframe = false;
 Camera* Application::camera = nullptr;
@@ -22,7 +22,7 @@ void Application::init(GLFWwindow* window)
     this->flag_wireframe = false;
 
     this->ambient_light = glm::vec4(0.75f, 0.75f, 0.75f, 1.f);
-	this->background_color = glm::vec4(0.1f, 0.1f, 0.1f, 1.f);
+    this->background_color = glm::vec4(0.1f, 0.1f, 0.1f, 1.f);
 
 
     /* ADD NODES TO THE SCENE */
@@ -36,6 +36,10 @@ void Application::init(GLFWwindow* window)
     example1->mesh = Mesh::Get("res/meshes/cube.obj");
     example1->material = new VolumeMaterial();
     this->node_list.push_back(example1);
+    VolumeNode* bunny = new VolumeNode();
+    bunny->material = new VolumeMaterial();
+    bunny->material->loadVDB("res/meshes/bunny_cloud.vdb");
+
 
 }
 

@@ -96,28 +96,6 @@ vec2 intersectAABB(vec3 rayOrigin, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
     return vec2(tNear, tFar);
 };
 
-float homogeneousRayMarching(vec2 t){
-    // 3. Compute the optical thickness.
-    float optical_thickness = (t.y - t.x) * u_absorption;
-    return optical_thickness;
-}
-
-float heterogeneousRayMarching(vec3 ray_position, vec3 ray_direction, vec2 t){
-    vec3 p;
-    float optical_thickness = 0.0;
-    float absorption_coeffitient = 0.2;
-    for (float i=t.x; i<t.y; i+=u_step_size) {
-        p = ray_position + i * ray_direction;
-        absorption_coeffitient = cnoise(p, u_noise_scale, u_noise_detail);
-        optical_thickness += absorption_coeffitient * u_absorption * u_step_size;
-        
-        // if (optical_thickness > 1.0) {
-        //     vec3 bg_col = vec3(u_background_color.x, u_background_color.y, u_background_color.z);
-        //     return vec4(bg_col, 1.0);
-        // }
-    }
-    return optical_thickness;
-}
 
 vec4 computeColor (vec3 ray_position, vec3 ray_direction, vec2 t, vec3 bg_color){
     float optical_thickness = 0.0;
