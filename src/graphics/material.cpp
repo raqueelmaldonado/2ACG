@@ -261,7 +261,7 @@ void StandardMaterial::render(Mesh* mesh, glm::mat4 model, Camera* camera)
 				// Set some uniforms in case there is no light
 				this->shader->setUniform("u_light_intensity", 1.f);
 				this->shader->setUniform("u_light_shininess", 1.f);
-				this->shader->setUniform("u_light_color", glm::vec4(0.f));
+				this->shader->setUniform("u_light_color", glm::vec4(0.f));	
 			}
 
 			// do the draw call
@@ -320,20 +320,19 @@ void VolumeMaterial::setUniforms(Camera* camera, glm::mat4 model)
 	this->shader->setUniform("u_model", model);
 	this->shader->setUniform("u_color", this->color);
 	this->shader->setUniform("u_absorption", this->absorption);
+	this->shader->setUniform("u_density_type", this->volume_type);
+	this->shader->setUniform("u_step_size", this->step_size);
+
 	if (volume_type == 0) {
-		this->shader->setUniform("u_volume_type", this->volume_type);
-	}
-	if (volume_type == 1) {
-		this->shader->setUniform("u_volume_type", this->volume_type);
-		this->shader->setUniform("u_step_size", this->step_size);
-		this->shader->setUniform("u_noise_scale", this->noise_scale);
-		this->shader->setUniform("u_noise_detail", this->noise_detail);
-	}
-	if (volume_type == 2) {
 		this->shader->setUniform("u_texture", this->texture);
 		this->shader = Shader::Get("res/shaders/volume.vs", "res/shaders/bunnycloud.fs");
 	}
+	if (volume_type == 1) {
 
+
+		this->shader->setUniform("u_noise_scale", this->noise_scale);
+		this->shader->setUniform("u_noise_detail", this->noise_detail);
+	}
 }
 
 void VolumeMaterial::renderInMenu() {
@@ -350,8 +349,13 @@ void VolumeMaterial::renderInMenu() {
 
 	ImGui::SliderFloat("Absorption", &this->absorption, 0.0f, 2.0f);
 
-	ImGui::Combo("Volume Type", &this->volume_type, "Homogeneous\0Heterogeneous\0VDB File");
-	if (volume_type == 2) {
+	ImGui::Combo("Volume Type", &this->volume_type, "Homogeneous\0Heterogeneous\0");
+	
+	ImGui::SliderFloat("Step Size", &this->step_size, 0.0f, 1.0f);
+
+	ImGui::Combo("Density", &this->volume_type, "VDB File\0Noise3D\0Constant");
+	if (volume_type == 0)//charge the file from appliccationn
+	{
 		if (this->vdb_path.empty()) {
 			this->vdb_path = "res/meshes/bunny_cloud.vdb";  // Default path
 			std::cout << "[INFO] Initialized VDB Path: " << this->vdb_path << std::endl;
@@ -359,10 +363,12 @@ void VolumeMaterial::renderInMenu() {
 
 		ImGui::Text("Current VDB Path: %s", this->vdb_path.c_str());
 
-		if (ImGui::Button("Load VDB")) {
-			std::cout << "Loading VDB from path: " << this->vdb_path << std::endl;
-			loadVDB(this->vdb_path);  // Call loadVDB
-		}
+		
+	}
+	else if (volume_type == 1) {
+		
+		ImGui::SliderFloat("Noise Scale", &this->noise_scale, 0.0f, 5.0f);
+		ImGui::SliderInt("Noise Detail", &this->noise_detail, 0, 5);
 	}
 
 	ImGui::ColorEdit3("Color", (float*)&this->color);
