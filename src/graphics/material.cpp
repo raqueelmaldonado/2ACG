@@ -329,63 +329,42 @@ void VolumeMaterial::setUniforms(Camera* camera, glm::mat4 model)
 		this->shader->setUniform("u_noise_scale", this->noise_scale);
 		this->shader->setUniform("u_noise_detail", this->noise_detail);
 	}
-	if (volume_data_idx == 0) {
+	if (volume_type == 2) {
 		this->shader->setUniform("u_texture", this->texture);
-	}
-
-	if (volume_data_idx == 2) {
-		this->shader->setUniform("u_density", this->density);
+		this->shader = Shader::Get("res/shaders/volume.vs", "res/shaders/bunnycloud.fs");
 	}
 
 }
 
-void VolumeMaterial::renderInMenu()
-{
-	// define an array
+void VolumeMaterial::renderInMenu() {
 	int shader_type;
-	if (ImGui::Combo("Shader Type", &shader_type, "Absortion\0Emission_absortion\0")) {
+	if (ImGui::Combo("Shader Type", &shader_type, "Absorption\0Emission_absorption\0")) {
 		if (shader_type == 0) {
 			this->shader = Shader::Get("res/shaders/volume.vs", "res/shaders/volume.fs");
 		}
-		if (shader_type == 1) {
+		else if (shader_type == 1) {
 			this->shader = Shader::Get("res/shaders/emission_absorption.vs", "res/shaders/emission_absorption.fs");
 			ImGui::SliderFloat("Step Size", &this->absorption, 0.0f, 1.0f);
 		}
-	};
-
-
+	}
 
 	ImGui::SliderFloat("Absorption", &this->absorption, 0.0f, 2.0f);
 
+	ImGui::Combo("Volume Type", &this->volume_type, "Homogeneous\0Heterogeneous\0VDB File");
+	if (volume_type == 2) {
+		if (this->vdb_path.empty()) {
+			this->vdb_path = "res/meshes/bunny_cloud.vdb";  // Default path
+			std::cout << "[INFO] Initialized VDB Path: " << this->vdb_path << std::endl;
+		}
 
-	ImGui::Combo("Volume Type", &this->volume_type, "Homogeneous\0Heterogeneous\0", 2);
-	if (volume_type == 1) {
-		ImGui::SliderFloat("Step Size", &this->step_size, 0.001f, 1.0f);
-		ImGui::SliderFloat("Noise Scale", &this->noise_scale, 0.0f, 3.0f);
-		ImGui::SliderInt("Noise Detail", &this->noise_detail, 0, 5);
+		ImGui::Text("Current VDB Path: %s", this->vdb_path.c_str());
 
-	}
-
-	ImGui::ColorEdit3("Color", (float*)&this->color);
-
-	// ----- LAB 4 ---------------------------
-	ImGui::Combo("Volume Data", &this->volume_data_idx, "VDB File\03D Noise\0Constant Density\0", 3);
-
-	if (volume_data_idx == 0) {
-		// Load VDB file
 		if (ImGui::Button("Load VDB")) {
-			loadVDB(this->vdb_path);
-
+			std::cout << "Loading VDB from path: " << this->vdb_path << std::endl;
+			loadVDB(this->vdb_path);  // Call loadVDB
 		}
 	}
 
-	if (volume_data_idx == 1) {
-		// 3d noise
-
-	}
-
-	if (volume_data_idx == 2) {
-		// noise, textura
-	}
-
+	ImGui::ColorEdit3("Color", (float*)&this->color);
 }
+
