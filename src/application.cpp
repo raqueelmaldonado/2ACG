@@ -37,10 +37,8 @@ void Application::init(GLFWwindow* window)
     example1->material = new VolumeMaterial();
     this->node_list.push_back(example1);
     VolumeNode* bunny = new VolumeNode();
-    bunny->material = new VolumeMaterial();
-    bunny->material->loadVDB("res/meshes/bunny_cloud.vdb");
-
-
+    bunny->material = new VolumeMaterial("res/meshes/bunny_cloud.vdb");
+	this->node_list.push_back(bunny);
 }
 
 void Application::update(float dt)

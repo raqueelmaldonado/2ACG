@@ -288,15 +288,16 @@ void StandardMaterial::renderInMenu()
 
 	if (!this->show_normals) ImGui::ColorEdit3("Color", (float*)&this->color);
 }
+VolumeMaterial::~VolumeMaterial() { }
 
-VolumeMaterial::VolumeMaterial() {
-	this->shader = Shader::Get("res/shaders/volume.vs", "res/shaders/volume.fs");
+VolumeMaterial::VolumeMaterial(std::string file_path) {
+	this->shader = Shader::Get("res/shaders/volume.vs", "res/shaders/bunnycloud.fs");
+	this->loadVDB(file_path);
 }
 
-VolumeMaterial::~VolumeMaterial() { }
+
 void VolumeMaterial::render(Mesh* mesh, glm::mat4 model, Camera* camera)
 {
-
 	if (mesh && this->shader) {
 		// enable shader
 		this->shader->enable();
