@@ -22,7 +22,6 @@ uniform sampler3D u_texture; // VDB File
 
 out vec4 FragColor;
 
-// Noise Functions
 
 // Noise functions
 float hash1( float n )
@@ -123,6 +122,37 @@ float get_optical_thickness(vec3 ray_position, vec3 ray_direction, vec2 t) {
 }
 
 
+vec4 computeColor (vec3 ray_position, vec3 ray_direction, vec2 t){
+    // Initialize variables
+    float optical_thickness = 0.0;
+    float transmittance;
+    vec3 final_color = vec3(0.0, 0.0, 0.0);
+    vec3 light_color = vec3(u_color.x, u_color.y, u_color.z);
+    vec3 p = vec3(0.0); 
+    float absorption_coeffitient;
+    vec3 texture_coord;
+
+    for (float i=0; i<t.y; i+=u_step_size) {
+        p = ray_position + i * ray_direction;
+        if (u_density_type == 0) {
+            // Get density from the VDB file
+            texture_coord = (p + 1.0) / 2.0; // Convert to texture coordinates
+            absorption_coeffitient = texture(u_texture, texture_coord).r;
+        } 
+        else if (u_density_type == 1) absorption_coeffitient = cnoise(p, u_noise_scale, u_noise_detail); // 3D noise
+        else if (u_density_type == 2) absorption_coeffitient = 1.0; // Constant density
+        optical_thickness += absorption_coeffitient * u_absorption * u_step_size;
+        transmittance = exp(-optical_thickness);
+        final_color += u_color.xyz * u_absorption * transmittance * u_step_size;
+    };
+
+    final_color += u_background_color.xyz * exp(-optical_thickness);
+    return vec4(final_color, 1.0);
+}
+
+
+
+
 void main() {
     // Compute ray direction
     vec3 ray_position = u_camera_position;
@@ -138,14 +168,15 @@ void main() {
     }
 
     // Clamp t to positive values
-    t.x = max(t.x, 0.0);
+    //t.x = max(t.x, 0.0);
 
 
     // Obtain optical thickness
-    float optical_thickness = get_optical_thickness(ray_position, ray_direction, t);
+    //float optical_thickness = get_optical_thickness(ray_position, ray_direction, t);
     
-    float transmittance = exp(-optical_thickness);
+    //float transmittance = exp(-optical_thickness);
 
     // Compute final color
-    FragColor = vec4(u_background_color.rgb * transmittance, 1.0);
+    FragColor = computeColor(ray_position, ray_direction, t);
+    // FragColor = vec4(u_background_color.rgb * transmittance, 1.0);
 }

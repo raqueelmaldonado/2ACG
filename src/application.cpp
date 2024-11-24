@@ -35,10 +35,9 @@ void Application::init(GLFWwindow* window)
     VolumeNode* example1 = new VolumeNode();
     example1->mesh = Mesh::Get("res/meshes/cube.obj");
     example1->material = new VolumeMaterial();
+	example1->material->loadVDB("res/meshes/bunny_cloud.vdb");
     this->node_list.push_back(example1);
-    VolumeNode* bunny = new VolumeNode();
-    bunny->material = new VolumeMaterial("res/meshes/bunny_cloud.vdb");
-	this->node_list.push_back(bunny);
+
 }
 
 void Application::update(float dt)

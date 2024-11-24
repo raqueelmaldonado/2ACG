@@ -69,7 +69,6 @@ public:
 	float absorption = 0.01; // Attribute for the absorption rate in volume rendering
 
 	VolumeMaterial();
-	VolumeMaterial(std::string file_path);
 	~VolumeMaterial();
 
 	void setUniforms(Camera* camera, glm::mat4 model) override;
@@ -80,18 +79,12 @@ public:
 	void loadVDB(std::string file_path) override;
 	void estimate3DTexture(easyVDB::OpenVDBReader* vdbReader);
 
+	// Attributes
+	int volume_type = 2;
+	float step_size = 0.1;
+	float noise_scale = 0.5;
+	int noise_detail = 2;
 
-
-	// Lab 3 attributes
-	int volume_type;
-	int shader_type;
-	float step_size = 0.01;
-	float noise_scale = 0.01;
-	int noise_detail = 1;
-
-	// Lab 4 attributes
-	int volume_data_idx;
-	float density = 0.5;
 	std::string vdb_path;
 
 
