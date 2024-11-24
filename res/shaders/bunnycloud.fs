@@ -162,7 +162,7 @@ void main() {
     vec2 t = intersectAABB(ray_position, ray_direction, vec3(-1.0, -1.0, -1.0), vec3(1.0, 1.0, 1.0));
 
     // Check for valid intersection
-    if (t.x > t.y || t.y < 0.0) {
+    if (t.x > t.y || t.y <= 0.0) {
         FragColor = u_background_color;
         return;
     }

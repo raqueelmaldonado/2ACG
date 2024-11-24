@@ -322,7 +322,7 @@ void VolumeMaterial::setUniforms(Camera* camera, glm::mat4 model)
 	this->shader->setUniform("u_step_size", this->step_size);
 
 	if (volume_type == 0) {
-		this->shader->setUniform("u_texture", this->texture);
+		this->shader->setUniform("u_texture", this->texture, 0);
 	}
 	if (volume_type == 1) {
 		this->shader->setUniform("u_noise_scale", this->noise_scale);
