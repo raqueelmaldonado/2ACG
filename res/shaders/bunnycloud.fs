@@ -22,6 +22,12 @@ uniform sampler3D u_texture; // VDB File
 
 out vec4 FragColor;
 
+uniform vec4 u_light_color; // Light color and intensity
+uniform float u_light_intensity; // Light intensity
+uniform vec3 u_local_light_position; // Position of the light source
+
+uniform float u_scattering_coefficient; // Scattering coefficient (µs)
+
 
 // Noise functions
 float hash1( float n )
@@ -99,37 +105,41 @@ vec2 intersectAABB(vec3 rayOrigin, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
     return vec2(tNear, tFar);
 }
 
-// Heterogeneous ray marching
-float get_optical_thickness(vec3 ray_position, vec3 ray_direction, vec2 t) {
-    vec3 p;
-    float optical_thickness = 0.0;
-    float density;
 
-    for (float i = t.x; i < t.y; i += u_step_size) {
-        p = ray_position + i * ray_direction; // Compute the current position
-
-        if (u_density_type == 0) {
-            // Get density from the VDB file
-            vec3 textureCoord = (p + 1.0) / 2.0; // Convert to texture coordinates
-            density = texture(u_texture, textureCoord).r;
-        } 
-        else if (u_density_type == 1) density = cnoise(p, u_noise_scale, u_noise_detail); // 3D noise
-        else if (u_density_type == 2) density = 1.0; // Constant density
-
-        optical_thickness += density * u_absorption * u_step_size;
+vec3 computeInScatteredLight(vec3 sample_position, vec3 light_position) { //compute Ls
+    vec3 light_direction = normalize(light_position - sample_position);
+    vec2 light_t = intersectAABB(sample_position, light_direction, vec3(-1.0), vec3(1.0));
+    if (light_t.x > light_t.y || light_t.y <= 0.0) {
+        return vec3(0.0); // No contribution if no intersection
     }
-    return optical_thickness;
+
+    float optical_thickness = 0.0;
+    vec3 accumulated_light = vec3(0.0);
+    for (float i = light_t.x; i < light_t.y; i += u_step_size) {
+        vec3 light_sample_position = sample_position + i * light_direction;
+
+        // Convert to texture coordinates
+        vec3 textureCoord = (light_sample_position + 1.0) / 2.0;
+        vec4 computeColor (vec3 ray_position, vec3 ray_direction, vec2 t)
+        float density = texture(u_texture, textureCoord).r;
+        optical_thickness += density * u_scattering * u_step_size;
+        float transmittance = exp(-optical_thickness);
+        accumulated_light += u_light_color.xyz * u_light_intensity * transmittance * u_step_size;
+    };
+    accumulated_light += u_light_color.xyz * u_light_intensity * exp(-optical_thickness); //multiply density??
+    return accumulated_light;
 }
 
 
 vec4 computeColor (vec3 ray_position, vec3 ray_direction, vec2 t){
     // Initialize variables
     float optical_thickness = 0.0;
+    vec3 accumulated_light = vec3(0.0);
     float transmittance;
     vec3 final_color = vec3(0.0, 0.0, 0.0);
     vec3 light_color = vec3(u_color.x, u_color.y, u_color.z);
     vec3 p = vec3(0.0); 
-    float absorption_coeffitient;
+    float density;
     vec3 texture_coord;
 
     for (float i=0; i<t.y; i+=u_step_size) {
@@ -137,11 +147,13 @@ vec4 computeColor (vec3 ray_position, vec3 ray_direction, vec2 t){
         if (u_density_type == 0) {
             // Get density from the VDB file
             texture_coord = (p + 1.0) / 2.0; // Convert to texture coordinates
-            absorption_coeffitient = texture(u_texture, texture_coord).r;
+            density = texture(u_texture, texture_coord).r;
+            accumulated_light = computeInScatteredLight(p, u_local_light_position);
+
         } 
-        else if (u_density_type == 1) absorption_coeffitient = cnoise(p, u_noise_scale, u_noise_detail); // 3D noise
-        else if (u_density_type == 2) absorption_coeffitient = 1.0; // Constant density
-        optical_thickness += absorption_coeffitient * u_absorption * u_step_size;
+        else if (u_density_type == 1) density = cnoise(p, u_noise_scale, u_noise_detail); // 3D noise
+        else if (u_density_type == 2) density = 1.0; // Constant density
+        optical_thickness += density * u_absorption * u_step_size;
         transmittance = exp(-optical_thickness);
         final_color += u_color.xyz * u_absorption * transmittance * u_step_size;
     };

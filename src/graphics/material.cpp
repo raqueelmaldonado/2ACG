@@ -316,7 +316,7 @@ void VolumeMaterial::setUniforms(Camera* camera, glm::mat4 model)
 	this->shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 	this->shader->setUniform("u_camera_position", camera->eye);
 	this->shader->setUniform("u_model", model);
-	this->shader->setUniform("u_color", this->color);
+	this->shader->setUniform("u_color", this->color);	
 	this->shader->setUniform("u_absorption", this->absorption);
 	this->shader->setUniform("u_density_type", this->volume_type);
 	this->shader->setUniform("u_step_size", this->step_size);
