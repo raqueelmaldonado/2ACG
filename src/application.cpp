@@ -38,6 +38,9 @@ void Application::init(GLFWwindow* window)
 	example1->material->loadVDB("res/meshes/bunny_cloud.vdb");
     this->node_list.push_back(example1);
 
+	Light* point_light = new Light(glm::vec3(2.0f, 3.0f, 2.0f), LIGHT_POINT, 1.0f, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	this->light_list.push_back(point_light);
+	this->node_list.push_back(point_light);
 }
 
 void Application::update(float dt)
