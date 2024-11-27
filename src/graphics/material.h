@@ -18,7 +18,7 @@ public:
 
 	Shader* shader = NULL;
 	Texture* texture = NULL;
-	glm::vec4 color;
+	glm::vec4 color = glm::vec4(0.0, 0.0, 0.0, 1.0);
 
 	virtual void setUniforms(Camera* camera, glm::mat4 model) = 0;
 	virtual void render(Mesh* mesh, glm::mat4 model, Camera* camera) = 0;
@@ -84,6 +84,8 @@ public:
 	float step_size = 0.1;
 	float noise_scale = 0.5;
 	int noise_detail = 2;
+	float scattering = 0.1;
+	float g = 0.0;
 
 	std::string vdb_path;
 

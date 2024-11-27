@@ -25,8 +25,13 @@ out vec4 FragColor;
 uniform vec4 u_light_color; // Light color and intensity
 uniform float u_light_intensity; // Light intensity
 uniform vec3 u_local_light_position; // Position of the light source
+uniform float u_light_shininess;
+uniform vec3 u_light_position;
+uniform int u_light_type;
+uniform float u_g;
 
-uniform float u_scattering_coefficient; // Scattering coefficient (µs)
+
+uniform float u_scattering; // Scattering coefficient (µs)
 
 
 // Noise functions
@@ -105,28 +110,40 @@ vec2 intersectAABB(vec3 rayOrigin, vec3 rayDir, vec3 boxMin, vec3 boxMax) {
     return vec2(tNear, tFar);
 }
 
+float phase_function(vec3 light_dir, vec3 view_dir) {
+    float cos_theta = dot(light_dir, view_dir); // Compute the cosine of the angle between light and view directions
+    float first_term = 1.0 / (4.0 * 3.14159265359); // 1 / 4π
+    float numerator = 1.0 - u_g * u_g; // (1 - g^2)
+    float denominator = pow(1.0 + u_g * u_g - 2.0 * u_g * cos_theta, 1.5); // (1 + g^2 - 2gcos(θ))^(3/2)
+    return first_term * (numerator / denominator);
+}
 
-vec3 computeInScatteredLight(vec3 sample_position, vec3 light_position) { //compute Ls
-    vec3 light_direction = normalize(light_position - sample_position);
+
+
+vec3 computeInScatteredLight(vec3 sample_position) { //compute Ls
+    vec3 light_direction = normalize(u_local_light_position - sample_position);
     vec2 light_t = intersectAABB(sample_position, light_direction, vec3(-1.0), vec3(1.0));
+    float density;
     if (light_t.x > light_t.y || light_t.y <= 0.0) {
         return vec3(0.0); // No contribution if no intersection
     }
-
     float optical_thickness = 0.0;
     vec3 accumulated_light = vec3(0.0);
     for (float i = light_t.x; i < light_t.y; i += u_step_size) {
         vec3 light_sample_position = sample_position + i * light_direction;
-
-        // Convert to texture coordinates
-        vec3 textureCoord = (light_sample_position + 1.0) / 2.0;
-        vec4 computeColor (vec3 ray_position, vec3 ray_direction, vec2 t)
-        float density = texture(u_texture, textureCoord).r;
+    
+        if (u_density_type == 0) {
+            // Get density from the VDB file
+            vec3 textureCoord = (light_sample_position + 1.0) / 2.0; // Convert to texture coordinates
+            density = texture(u_texture, textureCoord).r;
+        } 
+        else if (u_density_type == 1) density = cnoise(light_sample_position, u_noise_scale, u_noise_detail); // 3D noise
+        else if (u_density_type == 2) density = 1.0; // Constant density
         optical_thickness += density * u_scattering * u_step_size;
         float transmittance = exp(-optical_thickness);
-        accumulated_light += u_light_color.xyz * u_light_intensity * transmittance * u_step_size;
+        accumulated_light += u_light_color.xyz * u_light_intensity * transmittance * u_step_size * u_light_shininess;
     };
-    accumulated_light += u_light_color.xyz * u_light_intensity * exp(-optical_thickness); //multiply density??
+    accumulated_light += u_light_color.xyz * u_light_intensity * exp(-optical_thickness) * u_light_shininess; 
     return accumulated_light;
 }
 
@@ -141,28 +158,29 @@ vec4 computeColor (vec3 ray_position, vec3 ray_direction, vec2 t){
     vec3 p = vec3(0.0); 
     float density;
     vec3 texture_coord;
-
+    float scattering_term;
+    vec3 scattered_color;
+    float phase;
     for (float i=0; i<t.y; i+=u_step_size) {
         p = ray_position + i * ray_direction;
         if (u_density_type == 0) {
             // Get density from the VDB file
             texture_coord = (p + 1.0) / 2.0; // Convert to texture coordinates
             density = texture(u_texture, texture_coord).r;
-            accumulated_light = computeInScatteredLight(p, u_local_light_position);
-
+            accumulated_light = computeInScatteredLight(p);
         } 
         else if (u_density_type == 1) density = cnoise(p, u_noise_scale, u_noise_detail); // 3D noise
         else if (u_density_type == 2) density = 1.0; // Constant density
+        phase = phase_function(u_light_position, ray_direction);
+        scattered_color = computeInScatteredLight(p) * phase;
+        scattering_term = density * u_scattering; 
         optical_thickness += density * u_absorption * u_step_size;
         transmittance = exp(-optical_thickness);
-        final_color += u_color.xyz * u_absorption * transmittance * u_step_size;
-    };
-
+        final_color += u_color.xyz * u_step_size * (u_absorption * transmittance + scattering_term);
+    }
     final_color += u_background_color.xyz * exp(-optical_thickness);
     return vec4(final_color, 1.0);
 }
-
-
 
 
 void main() {
@@ -178,17 +196,6 @@ void main() {
         FragColor = u_background_color;
         return;
     }
-
-    // Clamp t to positive values
-    //t.x = max(t.x, 0.0);
-
-
-    // Obtain optical thickness
-    //float optical_thickness = get_optical_thickness(ray_position, ray_direction, t);
-    
-    //float transmittance = exp(-optical_thickness);
-
     // Compute final color
     FragColor = computeColor(ray_position, ray_direction, t);
-    // FragColor = vec4(u_background_color.rgb * transmittance, 1.0);
 }

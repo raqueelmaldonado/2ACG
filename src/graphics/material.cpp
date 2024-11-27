@@ -303,6 +303,13 @@ void VolumeMaterial::render(Mesh* mesh, glm::mat4 model, Camera* camera)
 		// upload uniforms
 		setUniforms(camera, model);
 
+		Light* l = Application::instance->light_list[0];
+		glm::vec4 colorlight = l->color;
+		this->shader->setUniform("u_light_color", colorlight);
+		this->shader->setUniform("u_light_intensity", l->intensity);
+		glm::vec3 light_position = glm::vec3(l->model[3][0], l->model[3][1], l->model[3][2]);
+		this->shader->setUniform("u_light_position", light_position);
+
 		// do the draw call
 		mesh->render(GL_TRIANGLES);
 
@@ -316,10 +323,13 @@ void VolumeMaterial::setUniforms(Camera* camera, glm::mat4 model)
 	this->shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 	this->shader->setUniform("u_camera_position", camera->eye);
 	this->shader->setUniform("u_model", model);
+	this->shader->setUniform("u_model", model);
 	this->shader->setUniform("u_color", this->color);	
 	this->shader->setUniform("u_absorption", this->absorption);
 	this->shader->setUniform("u_density_type", this->volume_type);
 	this->shader->setUniform("u_step_size", this->step_size);
+	this->shader->setUniform("u_scattering", this->scattering);
+	this->shader->setUniform("u_g", this->g);
 
 	if (volume_type == 0) {
 		this->shader->setUniform("u_texture", this->texture, 0);
@@ -350,5 +360,7 @@ void VolumeMaterial::renderInMenu() {
 	}
 
 	ImGui::ColorEdit3("Color", (float*)&this->color);
+	ImGui::SliderFloat("Scattering", &this->scattering, 0.0f, 1.0f);
+	ImGui::SliderFloat("g", &this->g, 0.0f, 1.0f);
 }
 
